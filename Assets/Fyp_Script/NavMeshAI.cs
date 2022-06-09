@@ -11,28 +11,60 @@ public class NavMeshAI : MonoBehaviour
     LocationManager.Paths path;
     LocationManager.Locations location;
     Transform moveTo;
+    Transform trainBoarding;
 
-    Stack<LocationManager.Locations> locationStack;
+    GameManager gameManager = GameManager.instance;
+
+    Queue<LocationManager.Locations> locationStack;
 
     void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
         locationManager = LocationManager.instance;
         path = locationManager.PathsList[Random.Range(0, locationManager.PathsList.Count)];
-        path.SpotsList.Reverse();
-        locationStack = new Stack<LocationManager.Locations>(path.SpotsList);
+        locationStack = new Queue<LocationManager.Locations>(path.SpotsList);
     }
 
     void Update()
     {
-        if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance && (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)){
-            if(locationStack.Count>0){
-                moveTo = locationStack.Peek().SpotsList[Random.Range(0, locationStack.Pop().SpotsList.Count)];
-                navMeshAgent.destination = moveTo.position;
-                // navMeshAgent.Stop();
-                //delay timer (fix or random)
-            }
+        // if(trainBoarding!=null && navMeshAgent.transform.position == trainBoarding.position){
+        //     Debug.Log("Boarding");
+        //     Destroy(gameObject);
+        
+        // }
+        if(location != null && location.last && gameManager.available){
+            location = null;
+            trainBoarding = gameManager.trainBoarding.GetComponentsInChildren<Transform>()[Random.Range(1, gameManager.trainBoarding.GetComponentsInChildren<Transform>().Length)];
+            navMeshAgent.destination = trainBoarding.position;
+            Debug.Log(navMeshAgent.transform.position);
+            Debug.Log("NavMeshAgent: ");
+
         }
-        else{}
+        else if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance && (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)){
+            if(location != null && locationStack.Count>0){
+                    
+                    StartCoroutine(timer(location.Wait));
+
+                }
+            if(locationStack.Count>0){
+                location = locationStack.Peek();
+                if(location != null){
+                moveTo = location.Spots.GetComponentsInChildren<Transform>()[Random.Range(1, location.Spots.GetComponentsInChildren<Transform>().Length)];
+                navMeshAgent.destination = moveTo.position;
+                }
+                
+            }
+
+            // Debug.Log(navMeshAgent.transform.position);
+        }  
+    }
+
+     IEnumerator timer(float time){
+        locationStack.Dequeue();
+        navMeshAgent.isStopped = true;
+        // navMeshAgent.Stop();
+        yield return new WaitForSecondsRealtime(time);
+        navMeshAgent.isStopped = false;
+        // navMeshAgent.Resume();
     }
 }

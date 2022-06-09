@@ -9,7 +9,9 @@ public class LocationManager : MonoBehaviour
     [System.Serializable]
     public class Locations{
         public string Name;
-        public List<Transform> SpotsList;
+        public Transform Spots;
+        public float Wait;
+        public bool last;
     }
     public List<Locations> LocationsList;
     
@@ -20,8 +22,21 @@ public class LocationManager : MonoBehaviour
     }
     public List<Paths> PathsList;
 
-    private void Awake() {
-        instance = this;
+    // private void Awake() {
+    //     instance = this;
+    // }
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Debug.Log("Instance already exists, destroying object!");
+            Destroy(this);
+        }
     }
 
     void Start()
