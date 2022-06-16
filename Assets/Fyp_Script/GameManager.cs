@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -21,6 +22,24 @@ public class GameManager : MonoBehaviour
     [HideInInspector]
     public bool available = false;
 
+
+    
+    [System.Serializable]
+    public class SpawnState {
+        public Transform Location;
+        public bool Burst;
+        // [Range(1, 100)]
+        // public int npcCount;
+    }
+    [Header("Spawner Setting")]
+    public List<SpawnState> spawning;
+    public List<GameObject> Ai;
+
+    public GameObject menu;
+    public InputField npcCount;
+    public InputField totalFaceMask;
+    public InputField Duration;
+
     private void Awake()
     {
         if (instance == null)
@@ -36,7 +55,43 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        InvokeRepeating("repeat", 1, 15+TrainWaitTime);
+        // InvokeRepeating("repeat", 1, 15+TrainWaitTime);
+    }
+
+
+    public void spawn(){
+        InvokeRepeating("repeat", 1, TrainWaitTime*3);
+        int npcArea = int.Parse(npcCount.text)/spawning.Count;
+        menu.SetActive(false);
+        foreach (SpawnState spawn in spawning)
+        {
+            if(Ai.Count > npcArea){
+                for (int i = 0; i < npcArea; i++)
+                {
+                    GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
+                }
+            }
+            else{
+                int mod = npcArea % Ai.Count;
+                int div = npcArea / Ai.Count;
+
+                for (int i = 0; i < mod; i++)
+                {
+                    for (int j = 0; j < div+1; j++)
+                    {
+                        GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
+                    }
+                }
+
+                for (int i = mod; i < Ai.Count; i++)
+                {
+                    for (int j = 0; j < div; j++)
+                    {
+                        GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
+                    }
+                }
+            }
+        }
     }
 
     void Update()

@@ -17,46 +17,38 @@ public class Spawner : MonoBehaviour
 
     public List<SpawnState> spawning;
     public List<GameObject> Ai;
-    GameObject navMeshAI;
-    private NavMeshAgent navMeshAgent;
 
     void Start()
     {
-        foreach (SpawnState spawn in spawning)
-        {
-            if(Ai.Count > spawn.npcCount){
-                for (int i = 0; i < spawn.npcCount; i++)
-                {
-                    GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
-                }
-            }
-            else{
-                int mod = spawn.npcCount % Ai.Count;
-                int div = spawn.npcCount / Ai.Count;
+        // foreach (SpawnState spawn in spawning)
+        // {
+        //     if(Ai.Count > spawn.npcCount){
+        //         for (int i = 0; i < spawn.npcCount; i++)
+        //         {
+        //             GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
+        //         }
+        //     }
+        //     else{
+        //         int mod = spawn.npcCount % Ai.Count;
+        //         int div = spawn.npcCount / Ai.Count;
 
-                for (int i = 0; i < mod; i++)
-                {
-                    for (int j = 0; j < div+1; j++)
-                    {
-                        GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
-                    }
-                }
+        //         for (int i = 0; i < mod; i++)
+        //         {
+        //             for (int j = 0; j < div+1; j++)
+        //             {
+        //                 GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
+        //             }
+        //         }
 
-                for (int i = mod; i < Ai.Count; i++)
-                {
-                    for (int j = 0; j < div; j++)
-                    {
-                        GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
-                    }
-                }
-            }
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        //         for (int i = mod; i < Ai.Count; i++)
+        //         {
+        //             for (int j = 0; j < div; j++)
+        //             {
+        //                 GameObject newAI = Instantiate(Ai[i], spawn.Location.position, Quaternion.identity);
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     //3/3 = 1 1 1
