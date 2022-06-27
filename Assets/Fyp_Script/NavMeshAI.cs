@@ -15,6 +15,8 @@ public class NavMeshAI : MonoBehaviour
     GameManager gameManager = GameManager.instance;
     Queue<LocationManager.Locations> locationStack;
 
+    Transform particleSystem;
+
     bool board = true;
 
     void Start()
@@ -23,13 +25,17 @@ public class NavMeshAI : MonoBehaviour
         locationManager = LocationManager.instance;
         path = locationManager.PathsList[Random.Range(0, locationManager.PathsList.Count)];
         locationStack = new Queue<LocationManager.Locations>(path.SpotsList);
+
+        particleSystem = gameObject.transform.Find("Particle System");
     }
 
     void Update()
     {
         if(trainBoarding!=null && Vector3.Distance(transform.position, trainBoarding.position)<1){
+            // gameObject.transform.Find("Particle System").parent = null;
+            particleSystem.parent = null;
+            particleSystem.GetComponent<ParticleSystem>().Stop();
             Destroy(gameObject);
-        
         }
         else if(location != null && location.last){
             if(board && gameManager.available){
@@ -41,8 +47,6 @@ public class NavMeshAI : MonoBehaviour
                 navMeshAgent.destination = moveTo.position;
                 board = true;
             }
-            
-            
         }
         else if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance && (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)){
             if(location != null && locationStack.Count>0){    
@@ -58,7 +62,7 @@ public class NavMeshAI : MonoBehaviour
         }
     }
 
-     IEnumerator timer(float time){
+    IEnumerator timer(float time){
         navMeshAgent.isStopped = true;
         yield return new WaitForSecondsRealtime(time);
         navMeshAgent.isStopped = false;

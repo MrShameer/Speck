@@ -38,10 +38,7 @@ public class CameraMovement : MonoBehaviour
         else if(Input.GetAxis("Mouse ScrollWheel") != 0)
         {
             float mouseScroll = Input.GetAxis("Mouse ScrollWheel");
-            // Debug.Log(mouseScroll);
             distanceToTarget += mouseScroll*-10;
-            // mouseHold();
-            // distanceToTarget = Mathf.Clamp(distanceToTarget, 1, 20);
             cam.transform.position = target.position;
             cam.transform.Translate(new Vector3(0, 0, -distanceToTarget));
         }
@@ -60,12 +57,7 @@ public class CameraMovement : MonoBehaviour
         float rotationAroundXAxis = direction.y * 180; // camera moves vertically
         
         cam.transform.position = target.position;
-        
-        // rotationX = Mathf.Clamp(cam.transform.eulerAngles.x, -90f, 90f);
         cam.transform.Rotate(new Vector3(1, 0, 0), rotationAroundXAxis);
-        // cam.transform.RotateAround(target.position, target.right, rotationAroundXAxis);
-        // Debug.Log(Mathf.Clamp(cam.transform.eulerAngles.x, 0, 90));
-        //  Mathf.Clamp(cam.transform.eulerAngles.x, 0, 90);
         target.transform.Rotate(new Vector3(0, 1, 0), rotationAroundYAxis, Space.World); // <— This is what makes it work!
         
         cam.transform.Translate(new Vector3(0, 0, -distanceToTarget));

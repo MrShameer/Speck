@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -35,8 +36,6 @@ public class UIManager : MonoBehaviour
         public string Simulation_Name;
         [JsonProperty("total_npc")]
         public string Total_Npc;
-        [JsonProperty("total_infected")]
-        public string Total_Infected_Npc;
         [JsonProperty("duration")]
         public string Simulation_Duration;
         [JsonProperty("with_mask")]
@@ -98,6 +97,7 @@ public class UIManager : MonoBehaviour
             SimPanel.transform.SetParent(simulationPanel.transform);
             //UBAH GAMBAR SEKALI
             SimPanel.transform.Find("Text").gameObject.GetComponent<Text>().text = i;
+            SimPanel.GetComponent<Button>().onClick.AddListener(delegate{openScene(i);});
         }
     }
 
@@ -169,7 +169,6 @@ public class UIManager : MonoBehaviour
         www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
         www.SetRequestHeader("Accept", "application/json");
         yield return www.Send();
-        Debug.Log(www.downloadHandler.text);
         SimulationInfo data =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
 
         if(!www.isNetworkError) {
@@ -199,5 +198,9 @@ public class UIManager : MonoBehaviour
                 SimPanel.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(fetchInfo(i.Simulation_Name));});
             }
         }
+    }
+
+    void openScene(string name){
+        SceneManager.LoadScene(name);
     }
 }

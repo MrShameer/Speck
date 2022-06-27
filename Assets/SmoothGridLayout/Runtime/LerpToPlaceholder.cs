@@ -19,7 +19,7 @@ namespace Akassets.SmoothGridLayout
         {
             if (_rectTransform == null || placeholderTransform == null || smoothGridLayout == null) return;
             if (placeholderTransform.transform.position.sqrMagnitude < 1) return;
-            transform.position = Vector3.Lerp(transform.position, placeholderTransform.position, Time.deltaTime * smoothGridLayout.lerpSpeed);
+            transform.position = Vector3.Lerp(transform.position, placeholderTransform.position, Time.unscaledDeltaTime  * smoothGridLayout.lerpSpeed);
         }
     }
 }
