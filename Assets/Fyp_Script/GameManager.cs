@@ -59,6 +59,11 @@ public class GameManager : MonoBehaviour
     public GameObject Text;
 
 
+    [Header("Alert")]
+    public GameObject alert;
+    public Text alertMessage;
+
+
     [System.Serializable]
     class SimsInfo
     {
@@ -72,6 +77,13 @@ public class GameManager : MonoBehaviour
         public string Simulation_Duration;
         [JsonProperty("with_mask")]
         public string Npc_With_Mask;
+    }
+    
+    [System.Serializable]
+    class SimInsert
+    {
+        public string message;
+        public bool insert;
     }
 
 
@@ -100,6 +112,7 @@ public class GameManager : MonoBehaviour
         menu.SetActive(true);
         SimulationInformation.SetActive(false);
         info = SimulationInformation.transform.Find("InfoPanel/Infos").gameObject;
+        alert.SetActive(false);
     }
 
     public void pause(){
@@ -122,13 +135,15 @@ public class GameManager : MonoBehaviour
         foreach(var property in simsInfo.GetType().GetFields()) 
         {
             GameObject InfoText = Instantiate(Text);
-            InfoText.transform.SetParent(info.transform);
+            InfoText.transform.SetParent(info.transform,false);
             InfoText.GetComponent<Text>().text = property.Name.Replace('_',' ') + " : " + property.GetValue(simsInfo);
         }
         SimulationInformation.SetActive(true);
         playButton.interactable = false;
         stopButton.interactable = false;
+    }
 
+    public void save(){
         StartCoroutine(sendInfo());
     }
 
@@ -147,6 +162,7 @@ public class GameManager : MonoBehaviour
         simsInfo.Simulation_Name = mapName.text;
         simsInfo.Total_Npc = npcCount.value.ToString();
         simsInfo.Npc_Spawn_Interval = npcSpawnInterval.value.ToString();
+        simsInfo.Npc_With_Mask = totalFaceMask.text;
         int npcArea = int.Parse(simsInfo.Total_Npc)/spawning.Count;
         menu.SetActive(false);
         optionPanel.SetActive(true);
@@ -225,8 +241,16 @@ public class GameManager : MonoBehaviour
         www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
         www.SetRequestHeader("Accept", "application/json");
         yield return www.Send();
-        // SimulationInfo data =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
-        // if(!www.isNetworkError) {
-        // }
+        SimInsert data =JsonConvert.DeserializeObject<SimInsert>(www.downloadHandler.text);
+        if(!www.isNetworkError) {
+            Debug.Log(data.message);
+            alert.SetActive(true);
+            alertMessage.text = data.message;
+            if(data.insert){
+                
+            }else{
+                //UNHIDE SAVE BUTTON
+            }
+        }
     }
 }

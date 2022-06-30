@@ -40,9 +40,9 @@ public class UIManager : MonoBehaviour
         public string Simulation_Duration;
         [JsonProperty("with_mask")]
         public string Npc_With_Mask;
-        [JsonProperty("created")]
+        [JsonProperty("created_at")]
         public string Simulation_Created_At;
-        [JsonProperty("updated")]
+        [JsonProperty("updated_at")]
         public string Simulation_Updated_At;
     }
 
