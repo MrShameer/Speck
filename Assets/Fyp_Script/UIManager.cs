@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UnityEngine.SceneManagement;
+using System;
 
 public class UIManager : MonoBehaviour
 {
@@ -23,6 +24,8 @@ public class UIManager : MonoBehaviour
     public InputField password;
     public Text validate;
 
+    bool panelOpen = false;
+
     [System.Serializable]
     public class Sims
     {
@@ -37,7 +40,7 @@ public class UIManager : MonoBehaviour
         [JsonProperty("total_npc")]
         public string Total_Npc;
         [JsonProperty("duration")]
-        public string Simulation_Duration;
+        public TimeSpan Simulation_Duration;
         [JsonProperty("with_mask")]
         public string Npc_With_Mask;
         [JsonProperty("created_at")]
@@ -84,6 +87,12 @@ public class UIManager : MonoBehaviour
         StartCoroutine(fetchLogin(email.text, password.text));
     }
 
+    public void LogOut(){
+        PlayerPrefs.DeleteKey("Token");
+        LoginPanel.SetActive(true);
+        MainPanel.SetActive(false);  
+    }
+
     public void newSimulation(){
         Menu.SetActive(false);
         Simulation.SetActive(true);
@@ -94,7 +103,7 @@ public class UIManager : MonoBehaviour
 
         foreach(var i in simulationNames){
             GameObject SimPanel = Instantiate(simulationBlock);
-            SimPanel.transform.SetParent(simulationPanel.transform);
+            SimPanel.transform.SetParent(simulationPanel.transform,false);
             //UBAH GAMBAR SEKALI
             SimPanel.transform.Find("Text").gameObject.GetComponent<Text>().text = i;
             SimPanel.GetComponent<Button>().onClick.AddListener(delegate{openScene(i);});
@@ -121,6 +130,7 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
         SimulationInformation.SetActive(false);
+        panelOpen = false;
     }
 
 
@@ -163,23 +173,26 @@ public class UIManager : MonoBehaviour
     }
 
     IEnumerator fetchInfo(string name) {
-        WWWForm form = new WWWForm();
-        form.AddField("name", name);
-        UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/info",form);
-        www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
-        www.SetRequestHeader("Accept", "application/json");
-        yield return www.Send();
-        SimulationInfo data =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
+        if(!panelOpen){
+            WWWForm form = new WWWForm();
+            form.AddField("name", name);
+            UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/info",form);
+            www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
+            www.SetRequestHeader("Accept", "application/json");
+            yield return www.Send();
+            SimulationInfo data =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
 
-        if(!www.isNetworkError) {
-            SimulationInformation.SetActive(true);
-            foreach(var property in data.GetType().GetFields()) 
-            {
-                GameObject InfoText = Instantiate(Text);
-                InfoText.transform.SetParent(info.transform);
-                InfoText.GetComponent<Text>().text = property.Name.Replace('_',' ') + " : " + property.GetValue(data);
+            if(!www.isNetworkError) {
+                SimulationInformation.SetActive(true);
+                foreach(var property in data.GetType().GetFields()) 
+                {
+                    GameObject InfoText = Instantiate(Text);
+                    InfoText.transform.SetParent(info.transform,false);
+                    InfoText.GetComponent<Text>().text = property.Name.Replace('_',' ') + " : " + property.GetValue(data);
+                }
             }
-        }   
+            panelOpen = true;
+        }
     }
 
     IEnumerator fetchSims(){
@@ -189,10 +202,11 @@ public class UIManager : MonoBehaviour
         www.SetRequestHeader("Accept", "application/json");
         yield return www.Send();
         Sims data = JsonConvert.DeserializeObject<Sims>(www.downloadHandler.text);
+        Debug.Log(www.downloadHandler.text);
         if(!www.isNetworkError) {
             foreach(var i in data.sims){
                 GameObject SimPanel = Instantiate(simulationBlock);
-                SimPanel.transform.SetParent(simulationPanel.transform);
+                SimPanel.transform.SetParent(simulationPanel.transform,false);
                 //UBAH GAMBAR SEKALI
                 SimPanel.transform.Find("Text").gameObject.GetComponent<Text>().text = i.Simulation_Name;
                 SimPanel.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(fetchInfo(i.Simulation_Name));});

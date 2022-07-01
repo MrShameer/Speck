@@ -6,6 +6,7 @@ using UnityEngine.AI;
 public class NavMeshAI : MonoBehaviour
 {
     private NavMeshAgent navMeshAgent;
+    private Animator animator;
 
     LocationManager locationManager;
     LocationManager.Paths path;
@@ -22,6 +23,7 @@ public class NavMeshAI : MonoBehaviour
     void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
         locationManager = LocationManager.instance;
         path = locationManager.PathsList[Random.Range(0, locationManager.PathsList.Count)];
         locationStack = new Queue<LocationManager.Locations>(path.SpotsList);
@@ -31,6 +33,7 @@ public class NavMeshAI : MonoBehaviour
 
     void Update()
     {
+        animator.SetFloat("Speed_f", navMeshAgent.velocity.magnitude);
         if(trainBoarding!=null && Vector3.Distance(transform.position, trainBoarding.position)<1){
             // gameObject.transform.Find("Particle System").parent = null;
             particleSystem.parent = null;

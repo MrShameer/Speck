@@ -5,11 +5,12 @@ using UnityEngine.UI;
 
 public class SimulationUI : MonoBehaviour
 {
-    public Slider slider;
+    public Slider FaceMask;
 
     public Text TotalNPC;
     public Text NPCSpawnInterval;
     public Text TrainWaitTime;
+    public Text TotalFaceMask;
 
     // void Start(){
     //     slider.value = 0;
@@ -25,6 +26,11 @@ public class SimulationUI : MonoBehaviour
     }
 
     public void TotalNPCSlider(float value){
+        FaceMask.maxValue = value;
         TotalNPC.text = value.ToString();
+    }
+
+    public void TotalFaceMaskSlider(float value){
+        TotalFaceMask.text = value.ToString();
     }
 }

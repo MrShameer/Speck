@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
     public InputField mapName;
     public Slider npcCount;
     public Slider npcSpawnInterval;
-    public InputField totalFaceMask;
+    public Slider totalFaceMask;
     InputField Duration;
 
     [Header("Options")]
@@ -62,6 +62,7 @@ public class GameManager : MonoBehaviour
     [Header("Alert")]
     public GameObject alert;
     public Text alertMessage;
+    // TextMesh alertTitle;
 
 
     [System.Serializable]
@@ -113,6 +114,7 @@ public class GameManager : MonoBehaviour
         SimulationInformation.SetActive(false);
         info = SimulationInformation.transform.Find("InfoPanel/Infos").gameObject;
         alert.SetActive(false);
+        // alertTitle = alert.transform.Find("Title").GetComponent<TextMesh>();
     }
 
     public void pause(){
@@ -130,8 +132,9 @@ public class GameManager : MonoBehaviour
     }
 
     public void stop(){
-        TimeSpan final = DateTime.Now - startTime;
-        simsInfo.Simulation_Duration = (final.Hours+"(H) / "+final.Minutes+"(M) / "+final.Seconds+"(S)");
+        // TimeSpan final = DateTime.Now - startTime;
+        // simsInfo.Simulation_Duration = (final.Hours+"(H) / "+final.Minutes+"(M) / "+final.Seconds+"(S)");
+        simsInfo.Simulation_Duration = (DateTime.Now - startTime).ToString("hh\\:mm\\:ss");
         foreach(var property in simsInfo.GetType().GetFields()) 
         {
             GameObject InfoText = Instantiate(Text);
@@ -162,7 +165,7 @@ public class GameManager : MonoBehaviour
         simsInfo.Simulation_Name = mapName.text;
         simsInfo.Total_Npc = npcCount.value.ToString();
         simsInfo.Npc_Spawn_Interval = npcSpawnInterval.value.ToString();
-        simsInfo.Npc_With_Mask = totalFaceMask.text;
+        simsInfo.Npc_With_Mask = totalFaceMask.value.ToString();
         int npcArea = int.Parse(simsInfo.Total_Npc)/spawning.Count;
         menu.SetActive(false);
         optionPanel.SetActive(true);
@@ -245,12 +248,19 @@ public class GameManager : MonoBehaviour
         if(!www.isNetworkError) {
             Debug.Log(data.message);
             alert.SetActive(true);
+            
             alertMessage.text = data.message;
+            StartCoroutine(fadeOut());
             if(data.insert){
-                
+                SimulationInformation.transform.Find("SaveButton").GetComponent<Button>().interactable = false;
             }else{
                 //UNHIDE SAVE BUTTON
             }
         }
+    }
+
+    IEnumerator fadeOut(){
+        yield return new WaitForSecondsRealtime(2);
+        alert.SetActive(false);
     }
 }
