@@ -10,6 +10,14 @@ using System;
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
+    
+    public string baseURL;
+    public string fetchLoginURL;
+    public string fetchValidateURL;
+    public string fetchInfoURL;
+    public string fetchSimsURL;
+    public string deleteSimURL;
+
 
     public GameObject Menu;
     public GameObject LoginPanel;
@@ -23,6 +31,7 @@ public class UIManager : MonoBehaviour
     public InputField email;
     public InputField password;
     public Text validate;
+    public GameObject alert;
 
     bool panelOpen = false;
 
@@ -35,6 +44,8 @@ public class UIManager : MonoBehaviour
     [System.Serializable]
     public class SimulationInfo
     {
+        [JsonProperty("id")]
+        public string Simulation_Id;
         [JsonProperty("name")]
         public string Simulation_Name;
         [JsonProperty("total_npc")]
@@ -44,9 +55,9 @@ public class UIManager : MonoBehaviour
         [JsonProperty("with_mask")]
         public string Npc_With_Mask;
         [JsonProperty("created_at")]
-        public string Simulation_Created_At;
+        public DateTime Simulation_Created_At;
         [JsonProperty("updated_at")]
-        public string Simulation_Updated_At;
+        public DateTime Simulation_Updated_At;
     }
 
     [System.Serializable]
@@ -58,7 +69,18 @@ public class UIManager : MonoBehaviour
         public string Token;
     }
 
+    [System.Serializable]
+    public class Delete
+    {
+        [JsonProperty("message")]
+        public string Message;
+        [JsonProperty("delete")]
+        public bool delete;
+    }
+
     string[] simulationNames = {"Train Station"};
+
+    SimulationInfo simInfo;
 
     private void Awake()
     {
@@ -76,12 +98,17 @@ public class UIManager : MonoBehaviour
     {
         info = SimulationInformation.transform.Find("InfoPanel/Infos").gameObject;
         simulationPanel = Simulation.transform.Find("SimPanel/Sims").gameObject;
+        alert.SetActive(false);
+    }
+
+    public void quit(){
+        Application.Quit();
     }
 
     public void Login()
     {
         if(string.IsNullOrWhiteSpace(email.text) || string.IsNullOrWhiteSpace(password.text)){
-            validate.text = "Please fill in all fields";
+            validate.text = "Sila Isi Semua Ruangan";
             return;
         }
         StartCoroutine(fetchLogin(email.text, password.text));
@@ -119,6 +146,7 @@ public class UIManager : MonoBehaviour
     public void back(){
         Menu.SetActive(true);
         Simulation.SetActive(false);
+        alert.SetActive(false);
         foreach (Transform child in simulationPanel.transform) {
             Destroy(child.gameObject);
         }
@@ -130,7 +158,16 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
         SimulationInformation.SetActive(false);
+        alert.SetActive(false);
         panelOpen = false;
+    }
+
+    public void openAlert(){
+        alert.SetActive(true);
+    }
+
+    public void closeAlert(){
+        alert.SetActive(false);
     }
 
 
@@ -139,10 +176,12 @@ public class UIManager : MonoBehaviour
         WWWForm form = new WWWForm();
         form.AddField("email", email);
         form.AddField("password", password);
-        UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/login",form);
+        UnityWebRequest www = UnityWebRequest.Post(baseURL+fetchLoginURL,form);
+        // http://speck-api.test/api/login
         yield return www.Send();
         
         data =JsonConvert.DeserializeObject<Log>(www.downloadHandler.text);
+        // data = JsonUtility.FromJson<Log>(www.downloadHandler.text);
 
         if(!www.isNetworkError) {
             if(data.Token != null){
@@ -159,7 +198,8 @@ public class UIManager : MonoBehaviour
     IEnumerator fetchValidate(){
         Log data = new Log();
         WWWForm form = new WWWForm();
-        UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/user",form);
+        UnityWebRequest www = UnityWebRequest.Post(baseURL+fetchValidateURL,form);
+        // http://speck-api.test/api/user
         www.SetRequestHeader("Authorization","Bearer "+ PlayerPrefs.GetString("Token"));
         www.SetRequestHeader("Accept", "application/json");
         yield return www.Send();
@@ -172,23 +212,28 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    IEnumerator fetchInfo(string name) {
+    IEnumerator fetchInfo(string name, string id) {
         if(!panelOpen){
             WWWForm form = new WWWForm();
-            form.AddField("name", name);
-            UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/info",form);
+            form.AddField("id", id);
+            UnityWebRequest www = UnityWebRequest.Post(baseURL+fetchInfoURL,form);
+            // http://speck-api.test/api/info
             www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
             www.SetRequestHeader("Accept", "application/json");
             yield return www.Send();
-            SimulationInfo data =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
+            // SimulationInfo data =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
+            simInfo =JsonConvert.DeserializeObject<SimulationInfo>(www.downloadHandler.text);
 
             if(!www.isNetworkError) {
                 SimulationInformation.SetActive(true);
-                foreach(var property in data.GetType().GetFields()) 
+                foreach(var property in simInfo.GetType().GetFields()) 
                 {
-                    GameObject InfoText = Instantiate(Text);
-                    InfoText.transform.SetParent(info.transform,false);
-                    InfoText.GetComponent<Text>().text = property.Name.Replace('_',' ') + " : " + property.GetValue(data);
+                    if(property.Name != "Simulation_Id"){
+                        GameObject InfoText = Instantiate(Text);
+                        InfoText.transform.SetParent(info.transform,false);
+                        InfoText.GetComponent<Text>().text = property.Name.Replace('_',' ') + " : " + property.GetValue(simInfo);
+                    }
+                    
                 }
             }
             panelOpen = true;
@@ -197,24 +242,48 @@ public class UIManager : MonoBehaviour
 
     IEnumerator fetchSims(){
         WWWForm form = new WWWForm();
-        UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/list",form);
+        UnityWebRequest www = UnityWebRequest.Post(baseURL+fetchSimsURL,form);
+        // http://speck-api.test/api/list
         www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
         www.SetRequestHeader("Accept", "application/json");
         yield return www.Send();
         Sims data = JsonConvert.DeserializeObject<Sims>(www.downloadHandler.text);
-        Debug.Log(www.downloadHandler.text);
         if(!www.isNetworkError) {
             foreach(var i in data.sims){
                 GameObject SimPanel = Instantiate(simulationBlock);
+                SimPanel.name = i.Simulation_Id;
                 SimPanel.transform.SetParent(simulationPanel.transform,false);
                 //UBAH GAMBAR SEKALI
                 SimPanel.transform.Find("Text").gameObject.GetComponent<Text>().text = i.Simulation_Name;
-                SimPanel.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(fetchInfo(i.Simulation_Name));});
+                SimPanel.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(fetchInfo(i.Simulation_Name,i.Simulation_Id));});
             }
         }
     }
 
     void openScene(string name){
         SceneManager.LoadScene(name);
+    }
+
+    public void deleteSim(){
+        alert.SetActive(false);
+        StartCoroutine(fetchDelete());
+    }
+
+    IEnumerator fetchDelete(){
+        WWWForm form = new WWWForm();
+        form.AddField("id", simInfo.Simulation_Id);
+        UnityWebRequest www = UnityWebRequest.Post(baseURL+deleteSimURL,form);
+        // http://speck-api.test/api/delete
+        www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
+        www.SetRequestHeader("Accept", "application/json");
+        yield return www.Send();
+        Delete data =JsonConvert.DeserializeObject<Delete>(www.downloadHandler.text);
+        if(!www.isNetworkError) {
+            if(data.delete){
+                closeInfo();
+                Destroy(simulationPanel.transform.Find(simInfo.Simulation_Id).gameObject);
+                
+            }
+        }
     }
 }

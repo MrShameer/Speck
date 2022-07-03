@@ -11,6 +11,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    public string insertInfoURL;
+    // "http://speck-api.test/api/insertInfo"
+
     [Header("Train Setting")]
     public GameObject trainPrefab;
     public Transform trainSpawner;
@@ -46,6 +49,7 @@ public class GameManager : MonoBehaviour
     public Slider npcSpawnInterval;
     public Slider totalFaceMask;
     InputField Duration;
+    public Text validate;
 
     [Header("Options")]
     public GameObject optionPanel;
@@ -107,6 +111,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        Time.timeScale = 1;
         playButton.interactable = false;
         stopButton.interactable = false;
         optionPanel.SetActive(false);
@@ -114,6 +119,8 @@ public class GameManager : MonoBehaviour
         SimulationInformation.SetActive(false);
         info = SimulationInformation.transform.Find("InfoPanel/Infos").gameObject;
         alert.SetActive(false);
+        validate.text = "";
+
         // alertTitle = alert.transform.Find("Title").GetComponent<TextMesh>();
     }
 
@@ -150,9 +157,9 @@ public class GameManager : MonoBehaviour
         StartCoroutine(sendInfo());
     }
 
-
     public void startSpawn(){
         if(string.IsNullOrWhiteSpace(mapName.text)){
+            validate.text = "Nama Simulasi Diperlukan";
             Debug.Log("Map name is empty");
             return;
         }
@@ -240,13 +247,12 @@ public class GameManager : MonoBehaviour
         form.AddField("npc_spawn_interval", simsInfo.Npc_Spawn_Interval);
         form.AddField("duration", simsInfo.Simulation_Duration);
         form.AddField("with_mask", simsInfo.Npc_With_Mask);
-        UnityWebRequest www = UnityWebRequest.Post("http://speck-api.test/api/insertInfo",form);
+        UnityWebRequest www = UnityWebRequest.Post(insertInfoURL,form);
         www.SetRequestHeader("Authorization", "Bearer "+ PlayerPrefs.GetString("Token"));
         www.SetRequestHeader("Accept", "application/json");
         yield return www.Send();
         SimInsert data =JsonConvert.DeserializeObject<SimInsert>(www.downloadHandler.text);
         if(!www.isNetworkError) {
-            Debug.Log(data.message);
             alert.SetActive(true);
             
             alertMessage.text = data.message;
