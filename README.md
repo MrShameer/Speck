@@ -3,11 +3,16 @@
 
 
 # About Speck
-Speck is an AI simulation game where users can simulate AI that behave like humans in a closed area like a mall or a train station. From this users can see how the AI interact with their surrounding and navigate themselves in that area. The main focus of this simulation is to find how particles from one person spread to their surrounding and giving us the idea on how certain diseases spread. From this users can know which places that are vulnerable and need sanitization. 
+Speck is an AI simulation where users can simulate AI that behave like humans in a closed area like a mall or a train station. From this users can see how the AI interact with their surrounding and navigate themselves in that area. The main focus of this simulation is to find how particles from one person spread to their surrounding and giving us the idea on how certain diseases spread. From this users can know which places that are vulnerable and need sanitization. 
 
 This project is build using [Unity](https://unity.com/) and uses the [Speck-API](https://github.com/MrShameer/Speck-API).
 
-*This app is still under development*
+*This software is still under development*
+
+### Below is a video explaining about this software
+*P/S : This video is in malay language*
+
+<a href="https://youtu.be/L_56Mrnow5s" target="_blank"><img src="https://img.youtube.com/vi/L_56Mrnow5s/0.jpg" width="300"></a>
 
 # About Speck-API
 Speck-API serves as a API for [Speck](https://github.com/MrShameer/Speck). This project uses Laravel framework.
